@@ -1,4 +1,5 @@
 import pathlib
+import sys
 
 from NowKwLang import modules, run
 from NowKwLang.parser import parse
@@ -14,6 +15,8 @@ def run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path =
             raise ValueError("Cannot specify both source and filename")
         name = path = pathlib.Path(filename)
         source = path.read_text()
+        if path.parent not in sys.path:
+            sys.path.append(str(path.parent))
     if hasattr(source, "read"):
         source = source.read()
     if not isinstance(source, str):

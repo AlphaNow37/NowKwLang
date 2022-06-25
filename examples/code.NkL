@@ -25,3 +25,5 @@ print(py_builtin_function(a_python_lib.combinations([1, 2, 3], 2))) /// [(1, 2),
 print(list(
     map((1, 2, 3, 4)){x>>>x*2} /// [2, 4, 6, 8]
 ))
+... = import("code2", asname="a_nkl_lib")
+print(a_nkl_lib.function("hey")) /// heyhey

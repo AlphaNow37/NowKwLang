@@ -21,6 +21,7 @@ def main(argv):
     if file_path.suffix != ".NkL":
         print(f"{file_path} is not a .NkL file")
         return 1
+    print("Running ...")
     NowKwLang.run_code(filename=file_path, debug=args.debug)
 
 if __name__ == '__main__':

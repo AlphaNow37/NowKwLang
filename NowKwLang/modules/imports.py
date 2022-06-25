@@ -22,9 +22,9 @@ class Importer:
 
 class Module:
     def __init__(self, scope, name):
+        self.__dict__ = scope
         if name is not None:
             self.__asname__ = name
-        self.__dict__ = scope
 
 def import_module(file, asname=None):
     module_scope = NowKwLang.run_code(filename=file)

@@ -61,7 +61,7 @@ class CodeInject(Expr):
         self.args = args
         self.body = body
         if self.args is not None:
-            self.keys = {arg[0] for arg in args}
+            self.keys = [arg[0] for arg in args]
         else:
             self.keys = None
 

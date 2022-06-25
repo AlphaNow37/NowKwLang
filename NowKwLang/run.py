@@ -193,6 +193,8 @@ def walk(exc):
         exc = exc.tb_next
 
 def run(ast: Block, ctx: Ctx):
+    DEBUG = ctx.debug or _DEBUG
+
     scope = Scope()
     scope["__file__"] = ctx.path
     try:
@@ -206,9 +208,9 @@ def run(ast: Block, ctx: Ctx):
         last_filename, last_lineno, n = None, None, 0
         acc = 0
         for locals_, path, line_number, function_name, line in walk(tb):
-            if not _DEBUG and not locals_.get("__traceback_show__", True):
+            if not DEBUG and not locals_.get("__traceback_show__", True):
                 continue
-            if (path != __file__) or _DEBUG:
+            if (path != __file__) or DEBUG:
                 message += f"{pad}File \"{path}\", line {line_number}, in {function_name}\n{pad*2}{line}"
 
                 if last_filename == path and last_lineno == line_number:
@@ -225,7 +227,7 @@ def run(ast: Block, ctx: Ctx):
                 token = locals_.get('token', None)
                 funcname = locals_.get('__funcname__', funcname)
                 if token:
-                    if _DEBUG:
+                    if DEBUG:
                         message += pad
                     if "__funcname__" in locals_:
                         funcname = locals_["__funcname__"]

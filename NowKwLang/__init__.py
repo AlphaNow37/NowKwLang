@@ -7,7 +7,7 @@ from NowKwLang.run import run
 from NowKwLang.context import Ctx
 
 
-def run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path = None):
+def run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path = None, debug=False):
     name = None
     if filename is not None:
         if source is not None:
@@ -18,7 +18,7 @@ def run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path =
         source = source.read()
     if not isinstance(source, str):
         raise TypeError("Source must be a string")
-    ctx = Ctx(name, source)
+    ctx = Ctx(name, source, debug=debug)
     tokens = lex(source, ctx)
     ast = parse(tokens, source, ctx)
     result = run(ast, ctx)

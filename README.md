@@ -4,7 +4,7 @@
 
 NowKwLang is a simple programming language.
 It is based on python and has a simple syntax.
-It has very ~~good~~/~~bad performance~~ average performance.
+It has very ~~good~~/~~bad~~ average performance.
 
 ## Example
 
@@ -24,3 +24,4 @@ for("b", range(3)){
 }
 ```
 __see examples__
+

@@ -1,0 +1,20 @@
+[project]
+name = "NowKwLang"
+version = "0.0.1"
+authors = [
+  { name="AlphaNow", email="alpha.now37@gmail.com" },
+]
+description = """
+NowKwLang is a simple programming language.
+It is based on python and has a simple syntax.
+It has very ~~good~~/~~bad~~ average performance.
+"""
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/AlphaNow37/NowKwLang"

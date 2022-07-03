@@ -9,7 +9,7 @@ from NowKwLang.context import Ctx
 
 
 def run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path = None, debug=False):
-    name = None
+    name = "<string>"
     if filename is not None:
         if source is not None:
             raise ValueError("Cannot specify both source and filename")
@@ -19,9 +19,10 @@ def run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path =
             sys.path.append(str(path.parent))
     if hasattr(source, "read"):
         source = source.read()
+        name = "<file>"
     if not isinstance(source, str):
         raise TypeError("Source must be a string")
-    ctx = Ctx(name, source, debug=debug)
+    ctx = Ctx(name, source, debug=debug, is_real_file=filename is not None)
     tokens = lex(source, ctx)
     ast = parse(tokens, source, ctx)
     result = run(ast, ctx)

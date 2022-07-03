@@ -195,7 +195,7 @@ def walk(exc):
 SCOPE_CACHE = {}
 
 def run(ast: Block, ctx: Ctx):
-    if ctx.path is None:
+    if not ctx.is_real_file:
         scope = Scope()
     elif ctx.path in SCOPE_CACHE:
         return SCOPE_CACHE[ctx.path]

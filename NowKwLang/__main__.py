@@ -2,11 +2,15 @@ import argparse
 import pathlib
 import sys
 
+if __file__.removesuffix('\\__main__.py') in sys.path:
+    sys.path.remove(__file__.removesuffix('\\__main__.py'))
+    sys.path.append(__file__.removesuffix('\\NowKwLang\\__main__.py'))
+
 import NowKwLang
 
 
 parser = argparse.ArgumentParser(description="NowKwLang")
-parser.add_argument("-file", help="file to run")
+parser.add_argument("file", help="file to run", nargs="?")
 parser.add_argument("-d", "--debug", action="store_true", help="debug mode")
 
 def main(argv):

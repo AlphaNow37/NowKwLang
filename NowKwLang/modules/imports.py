@@ -32,7 +32,7 @@ def import_module(file, asname=None):
     if file in MODULE_CACHE:
         return MODULE_CACHE[file]
     else:
-        module_scope = NowKwLang.run_code(filename=file)
+        module_scope = NowKwLang.run_code(filename=file, return_scope=True)
         mdl = Module(module_scope, asname)
         MODULE_CACHE[file] = mdl
         return mdl

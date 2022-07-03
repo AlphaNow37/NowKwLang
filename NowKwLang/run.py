@@ -194,7 +194,7 @@ def walk(exc):
 
 SCOPE_CACHE = {}
 
-def run(ast: Block, ctx: Ctx, scope=None):
+def run(ast: Block, ctx: Ctx, scope=None, return_scope=False):
     if scope is not None:
         pass
     elif not ctx.is_real_file:
@@ -266,4 +266,7 @@ def run(ast: Block, ctx: Ctx, scope=None):
             {"__str__": lambda self: message, "__init__": lambda self, *_, **__: None}
         )(), e) from None
     else:
-        return result
+        if return_scope:
+            return scope
+        else:
+            return result

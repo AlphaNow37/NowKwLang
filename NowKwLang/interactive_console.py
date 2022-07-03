@@ -33,13 +33,15 @@ class ConsoleInteracter:
             try:
                 ast = parse(iter(toks), self.ctx)
             except Exception as e:
-                print(e, file=stderr)
+                print("Traceback (most recent call last):", file=stderr)
+                print(str(e).removeprefix("\n"), file=stderr)
                 time.sleep(0.1)
                 continue
             try:
                 result = run(ast, self.ctx, scope=scope)
             except Exception as e:
-                print(e, file=stderr)
+                print("Traceback (most recent call last):", file=stderr)
+                print(str(e).removeprefix("\n"), file=stderr)
                 time.sleep(0.1)
                 continue
             if result is not None:

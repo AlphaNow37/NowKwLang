@@ -1,0 +1,6 @@
+... = import("import_A")
+
+... = func("test"){
+    import_A.test()
+    print("B test")
+}

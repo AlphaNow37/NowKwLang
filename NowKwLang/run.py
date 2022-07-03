@@ -192,11 +192,21 @@ def walk(exc):
         yield locals_, path, line_number, function_name, line
         exc = exc.tb_next
 
-def run(ast: Block, ctx: Ctx):
-    DEBUG = ctx.debug or _DEBUG
+SCOPE_CACHE = {}
 
-    scope = Scope()
+def run(ast: Block, ctx: Ctx):
+    if ctx.path is None:
+        scope = Scope()
+    elif ctx.path in SCOPE_CACHE:
+        return SCOPE_CACHE[ctx.path]
+    else:
+        scope = Scope()
+        SCOPE_CACHE[ctx.path] = scope
+
+    DEBUG = ctx.debug or _DEBUG
     scope["__file__"] = ctx.path
+    scope["__name__"] = ctx.path.stem
+    SCOPE_CACHE[ctx.path] = scope
     try:
         run_block(ast, scope)
 

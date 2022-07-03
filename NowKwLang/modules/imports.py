@@ -26,6 +26,13 @@ class Module:
         if name is not None:
             self.__asname__ = name
 
+MODULE_CACHE = {}
+
 def import_module(file, asname=None):
-    module_scope = NowKwLang.run_code(filename=file)
-    return Module(module_scope, asname)
+    if file in MODULE_CACHE:
+        return MODULE_CACHE[file]
+    else:
+        module_scope = NowKwLang.run_code(filename=file)
+        mdl = Module(module_scope, asname)
+        MODULE_CACHE[file] = mdl
+        return mdl

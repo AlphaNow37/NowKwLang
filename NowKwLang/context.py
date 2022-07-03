@@ -8,6 +8,8 @@ class Ctx:
         self.lines = code.split("\n")
         if is_real_file:
             self.abspath = path.resolve()
+            self.file_name = path.stem
         else:
             self.abspath = path
+            self.file_name = path
         self.debug = debug

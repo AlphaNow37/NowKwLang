@@ -5,18 +5,20 @@ from NowKwLang.lexer import Token, NewLine
 from NowKwLang.context import Ctx
 
 class TokenStream:
-    def __init__(self, gen, code: str, ctx: Ctx):
+    def __init__(self, gen, ctx: Ctx):
         self.cache = deque()
         self.gen: Iterator[Token] = gen
-        self.code = code
         self.ctx = ctx
+        self.last_token = None
 
     def consume(self, n=1):
+        t = None
         for _ in range(n):
             if self.cache:
-                self.cache.popleft()
+                t = self.cache.popleft()
             else:
-                next(self.gen)
+                t = next(self.gen)
+        self.last_token = t
 
     def __getitem__(self, item) -> Token | list[Token]:
         if isinstance(item, int):
@@ -37,9 +39,9 @@ class TokenStream:
     def sub(self, tokens, remove_spaces=True):
         if remove_spaces:
             tokens = [tok for tok in tokens if not isinstance(tok, NewLine)]
-        return TokenSubStream(self.ctx, tokens, self.code)
+        return TokenSubStream(self.ctx, tokens)
 
 class TokenSubStream(TokenStream):
-    def __init__(self, ctx, tokens, code):
-        super().__init__(iter(()), code, ctx)
+    def __init__(self, ctx, tokens):
+        super().__init__(iter(()), ctx)
         self.cache = deque(tokens)

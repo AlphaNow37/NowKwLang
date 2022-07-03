@@ -135,6 +135,8 @@ def parse_stack(stream: TokenStream):
                     raise NotImplementedError()
         case Symbol("..."):
             actual = Variable("...", token)
+        case None:
+            raise ParsingError(stream.last_token, "Unexpected end", stream.ctx)
         case _:
             raise ParsingError(token, "Invalid syntax", stream.ctx)
     stream.consume(1)

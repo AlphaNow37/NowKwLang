@@ -194,8 +194,10 @@ def walk(exc):
 
 SCOPE_CACHE = {}
 
-def run(ast: Block, ctx: Ctx):
-    if not ctx.is_real_file:
+def run(ast: Block, ctx: Ctx, scope=None):
+    if scope is not None:
+        pass
+    elif not ctx.is_real_file:
         scope = Scope()
     elif ctx.path in SCOPE_CACHE:
         return SCOPE_CACHE[ctx.path]
@@ -205,10 +207,9 @@ def run(ast: Block, ctx: Ctx):
 
     DEBUG = ctx.debug or _DEBUG
     scope["__file__"] = ctx.path
-    scope["__name__"] = ctx.path.stem
-    SCOPE_CACHE[ctx.path] = scope
+    scope["__name__"] = ctx.file_name
     try:
-        run_block(ast, scope)
+        result = run_block(ast, scope)
 
     except Exception as e:
         message = "\n"
@@ -265,4 +266,4 @@ def run(ast: Block, ctx: Ctx):
             {"__str__": lambda self: message, "__init__": lambda self, *_, **__: None}
         )(), e) from None
     else:
-        return scope
+        return result

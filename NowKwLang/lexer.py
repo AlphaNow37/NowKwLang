@@ -1,7 +1,49 @@
 from typing import Iterator
+from collections import deque
 
 from NowKwLang import errors
 from NowKwLang.context import Ctx
+
+
+class CharStream:
+    def __init__(self, iterator):
+        self.chars = deque()
+        if isinstance(iterator, str):
+            self.chars.extend(iterator)
+            iterator = iter(())
+        self.iterator = iterator
+        self.pos = 0
+        self.line = 1
+        self.col = 1
+
+    def get(self, i=0, default=None):
+        if i < len(self.chars):
+            return self.chars[i]
+        for _ in range(i - len(self.chars) + 1):
+            try:
+                self.chars.append(next(self.iterator))
+            except StopIteration:
+                return default
+        return self.chars[-1]
+
+    def consume(self, n):
+        for _ in range(n):
+            self.pos += 1
+            if self.get() == "\n":
+                self.line += 1
+                self.col = 1
+            else:
+                self.col += 1
+            self.chars.popleft()
+
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            return self.get(item)
+        elif isinstance(item, slice):
+            return "".join(self.get(index, "") for index in range(item.start, item.stop))
+
+    def startswith(self, string):
+        return all(self.get(i) == char for i, char in enumerate(string))
 
 
 class Token:
@@ -75,45 +117,36 @@ _SYMBOLS = {
     "assign": ["="],
 }
 
-def _buff(source, i, condition):
+def _buff(stream: CharStream, condition):
     buffer = ""
-    while i < len(source) and condition(source[i]):
-        buffer += source[i]
-        i += 1
-    i -= 1
-    return buffer, i
+    while condition(char := stream.get()):
+        buffer += char
+        stream.consume(1)
+    return buffer
 
 
-def generate_tokens(source, ctx):
-    i = 0
-    line = 1
-    column = 1
-    while i < len(source):
-        if source[i] == '\n':
-            yield NewLine(line, ctx)
-            line += 1
-            column = 0
-        elif source[i: i+3] == "///":
-            i += 3
-            buffer, i = _buff(source, i, lambda c: c != '\n')
-        elif source[i:i+2] == "/*":
-            i += 2
-            column += 2
-            while i < len(source) and source[i:i+2] != "*/":
-                column += 1
-                if source[i] == '\n':
-                    line += 1
-                    column = 1
-                i += 1
-            column += 1
-            i += 1
-        elif source[i] == ';':
-            yield NewStmt(line, column, 1, ctx)
-        elif source[i] in ' \t':
-            buffer, i = _buff(source, i, lambda c: c in ' \t')
-            column += len(buffer) - 1
-        elif source[i].isdigit() or source[i] == "." and i + 1 < len(source) and source[i + 1].isdigit():
-            is_float = source[i] == "."
+def generate_tokens(stream: CharStream, ctx):
+    while (char := stream.get()) is not None:
+        if char == '\n':
+            yield NewLine(stream.line, ctx)
+            stream.consume(1)
+        elif stream.startswith("///"):
+            _ = _buff(stream, lambda c: c != '\n')
+        elif stream.startswith("/*"):
+            o_line, o_col = stream.line, stream.col
+            stream.consume(2)
+            while not stream.startswith("*/"):
+                stream.consume(1)
+                if stream.get() is None:
+                    raise errors.SyntaxError(Token(o_line, o_col, 2, ctx), "unclosed comment", ctx)
+            stream.consume(2)
+        elif char == ';':
+            yield NewStmt(stream.line, stream.col, 1, ctx)
+            stream.consume(1)
+        elif char in ' \t':
+            _ = _buff(stream, lambda c: c in ' \t')
+        elif char.isdigit() or char == "." and stream.get(1, "_").isdigit():
+            is_float = char == "."
 
             def match(c):
                 nonlocal is_float
@@ -126,27 +159,26 @@ def generate_tokens(source, ctx):
                     return True
                 return False
 
-            buffer, i = _buff(source, i, match)
+            buffer = _buff(stream, match)
             token_cls, caster = (Float, float) if is_float else (Int, int)
-            yield token_cls(line, column, len(buffer), caster(buffer), ctx)
-            column += len(buffer) - 1
-        elif source[i].isalpha() or source[i] == '_':
-            buffer, i = _buff(source, i, lambda c: c.isalnum() or c == '_')
-            yield Name(line, column, len(buffer), buffer, ctx)
-            column += len(buffer) - 1
-        elif source[i] in "'\"":
-            string = ""
-            quote = source[i]
-            i += 1
-            base_column = column
-            base_line = line
+            yield token_cls(stream.line, stream.col, len(buffer), caster(buffer), ctx)
+        elif char.isalpha() or char == '_':
+            base_col = stream.col
+            buffer = _buff(stream, lambda c: c.isalnum() or c == '_')
+            yield Name(stream.line, base_col, len(buffer), buffer, ctx)
+        elif char in "'\"":
+            quote = char
+            base_column = stream.col
+            base_line = stream.line
+            stream.consume(1)
             was_slashed = False
-            length = 0
-            for char in source[i:]:
-                column += 1
-                length += 1
+            text = ""
+            while (char := stream.get()) != quote or was_slashed:
+                if char is None:
+                    raise errors.SyntaxError(Token(base_line, base_column, 1, ctx), "Unclosed string", ctx)
+                stream.consume(1)
                 if was_slashed:
-                    new_char = {
+                    text += {
                         "'": "'",
                         '"': '"',
                         "\\": "\\",
@@ -154,40 +186,30 @@ def generate_tokens(source, ctx):
                         "n": "\n",
                         "r": "\r",
                     }.get(char, "\\" + char)
-                    string += new_char
                     was_slashed = False
-                elif char == quote:
-                    break
-                elif char == '\n':
-                    line += 1
-                    column = 0
-                elif char == '\\':
+                elif char == "\\":
                     was_slashed = True
-                else:
-                    string += char
-            else:
-                raise errors.SyntaxError(Token(base_line, base_column-1, 1, ctx), "Unclosed string", ctx)
-            i += length - 1
-            yield String(base_line, base_column, length + 1, string, ctx)
+                elif char != quote:
+                    text += char
+            stream.consume(1)
+            yield String(base_line, base_column, len(text) + 1, text, ctx)
         else:
             cont = True
             for stype, symbols in _SYMBOLS.items():
                 for symbol in symbols:
-                    if source[i:i + len(symbol)] == symbol:
-                        if stype == "math" and source[i+len(symbol): i+len(symbol)+1] == "=":
-                            yield Symbol(line, column, len(symbol) + 1, symbol + "=", "in-place", ctx)
-                            column += 1
-                            i += 1
+                    if stream.startswith(symbol):
+                        if stype == "math" and stream.get(len(symbol)) == "=":
+                            yield Symbol(stream.line, stream.col, len(symbol) + 1, symbol + "=", "in-place", ctx)
+                            stream.consume(1)
                         else:
-                            yield Symbol(line, column, len(symbol), symbol, stype, ctx)
-                        column += len(symbol) - 1
-                        i += len(symbol) - 1
+                            yield Symbol(stream.line, stream.col, len(symbol), symbol, stype, ctx)
+                        stream.consume(len(symbol))
                         cont = False
                         break
                 if not cont:
                     break
-        column += 1
-        i += 1
+            else:
+                raise errors.SyntaxError(Token(stream.line, stream.col, 1, ctx), f"Unknown character: {char!r}", ctx)
 
 class BracketGroup(Token):
     def __init__(self, line, column, bracket_char, tokens, ctx):
@@ -224,22 +246,18 @@ def group_brackets(iterator, closing, ctx, first_token=None):
                 return
             case Symbol(border, "_closing"):
                 raise errors.LexingError(first_token, f"Closing bracket don't match any open bracket", ctx)
-            case token:
+            case _:
                 yield token
 
-def lex(source: str, ctx) -> Iterator[Token | None]:
-    iterator = iter(generate_tokens(source, ctx))
+def lex(source: str | Iterator, ctx) -> Iterator[Token | None]:
+    stream = CharStream(source)
+    iterator = iter(generate_tokens(stream, ctx))
     yield from group_brackets(iterator, None, ctx)
 
 if __name__ == '__main__':
-    code = """
-i = 0
-while{i<10}{
-    i = i + 1
-    print(i)
-}
-
+    code = r"""
+"\n"
 """
     print(repr(code))
-    for token in lex(code, Ctx(None, code)):
+    for token in lex(code, Ctx("string", code, is_real_file=False)):
         print(token)

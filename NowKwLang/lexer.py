@@ -1,5 +1,6 @@
 from typing import Iterator
 from collections import deque
+import re
 
 from NowKwLang import errors
 from NowKwLang.context import Ctx
@@ -79,7 +80,7 @@ class _ValueToken(Token):
         self.value = value
 
     def _get_infos(self):
-        return str(self.value)
+        return repr(self.value)
 
     __match_args__ = ("value",)
 
@@ -109,7 +110,7 @@ _SYMBOLS = {
     "points": ["...", ".", ":"],
     "part_sep": [">>>"],
     "boolean": ['&&', "||"],
-    "math": ["+", "-",  "**", "*", "//", "%", "|", "&", "??"],
+    "math": ["+", "-",  "**", "*", "//", "%", "|", "&", "??", "<<", ">>"],
     "logic": ["===", "!==", "==", "!=", ">=", "<=", ">", "<"],
     "_opening": ["(", "[", "{"],
     "_closing": [")", "]", "}"],
@@ -125,6 +126,55 @@ def _buff(stream: CharStream, condition):
     return buffer
 
 
+prefixs = {
+    "re": ("re", "compile"),
+    "json": ("json", "loads"),
+}
+
+def parse_string(stream: CharStream, ctx, prefix=""):
+    caster = str
+    is_raw = False
+    if prefix in prefixs:
+        module_name, method_name = prefixs[prefix]
+        caster = getattr(__import__(module_name), method_name)
+    else:
+        if prefix.startswith("r"):
+            is_raw = True
+            prefix = prefix[1:]
+        if prefix.startswith("b"):
+            caster = str.encode
+            prefix = prefix[1:]
+        if prefix:
+            raise errors.LexingError(Token(stream.line, stream.col-len(prefix), len(prefix), ctx), "Unkown prefix", ctx)
+    endquote = stream.get()
+    base_column = stream.col
+    base_line = stream.line
+    stream.consume(1)
+    was_slashed = False
+    text = ""
+    while (char := stream.get()) != endquote or was_slashed:
+        if char is None:
+            raise errors.LexingError(Token(base_line, base_column, 1, ctx), "Unclosed string", ctx)
+        stream.consume(1)
+        if was_slashed:
+            text += {
+                "'": "'",
+                '"': '"',
+                "\\": "\\",
+                "t": "\t",
+                "n": "\n",
+                "r": "\r",
+            }.get(char, "\\" + char)
+            was_slashed = False
+        elif char == "\\" and not is_raw:
+            was_slashed = True
+        elif char != endquote:
+            text += char
+    stream.consume(1)
+    casted = caster(text)
+    return String(base_line, base_column, len(text), casted, ctx)
+
+
 def generate_tokens(stream: CharStream, ctx):
     while (char := stream.get()) is not None:
         if char == '\n':
@@ -138,7 +188,7 @@ def generate_tokens(stream: CharStream, ctx):
             while not stream.startswith("*/"):
                 stream.consume(1)
                 if stream.get() is None:
-                    raise errors.SyntaxError(Token(o_line, o_col, 2, ctx), "unclosed comment", ctx)
+                    raise errors.LexingError(Token(o_line, o_col, 2, ctx), "unclosed comment", ctx)
             stream.consume(2)
         elif char == ';':
             yield NewStmt(stream.line, stream.col, 1, ctx)
@@ -165,34 +215,12 @@ def generate_tokens(stream: CharStream, ctx):
         elif char.isalpha() or char == '_':
             base_col = stream.col
             buffer = _buff(stream, lambda c: c.isalnum() or c == '_')
-            yield Name(stream.line, base_col, len(buffer), buffer, ctx)
+            if stream.get() in "\"'":
+                yield parse_string(stream, ctx, buffer)
+            else:
+                yield Name(stream.line, base_col, len(buffer), buffer, ctx)
         elif char in "'\"":
-            quote = char
-            base_column = stream.col
-            base_line = stream.line
-            stream.consume(1)
-            was_slashed = False
-            text = ""
-            while (char := stream.get()) != quote or was_slashed:
-                if char is None:
-                    raise errors.SyntaxError(Token(base_line, base_column, 1, ctx), "Unclosed string", ctx)
-                stream.consume(1)
-                if was_slashed:
-                    text += {
-                        "'": "'",
-                        '"': '"',
-                        "\\": "\\",
-                        "t": "\t",
-                        "n": "\n",
-                        "r": "\r",
-                    }.get(char, "\\" + char)
-                    was_slashed = False
-                elif char == "\\":
-                    was_slashed = True
-                elif char != quote:
-                    text += char
-            stream.consume(1)
-            yield String(base_line, base_column, len(text) + 1, text, ctx)
+            yield parse_string(stream, ctx)
         else:
             cont = True
             for stype, symbols in _SYMBOLS.items():
@@ -209,7 +237,7 @@ def generate_tokens(stream: CharStream, ctx):
                 if not cont:
                     break
             else:
-                raise errors.SyntaxError(Token(stream.line, stream.col, 1, ctx), f"Unknown character: {char!r}", ctx)
+                raise errors.LexingError(Token(stream.line, stream.col, 1, ctx), f"Unknown character: {char!r}", ctx)
 
 class BracketGroup(Token):
     def __init__(self, line, column, bracket_char, tokens, ctx):
@@ -256,7 +284,7 @@ def lex(source: str | Iterator, ctx) -> Iterator[Token | None]:
 
 if __name__ == '__main__':
     code = r"""
-"\n"
+re'hey'
 """
     print(repr(code))
     for token in lex(code, Ctx("string", code, is_real_file=False)):

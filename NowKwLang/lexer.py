@@ -1,6 +1,5 @@
 from typing import Iterator
 from collections import deque
-import re
 
 from NowKwLang import errors
 from NowKwLang.context import Ctx

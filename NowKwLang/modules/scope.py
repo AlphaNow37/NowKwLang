@@ -48,6 +48,7 @@ class _BuiltinScope(dict):
             "if": If, "If": If,
             "map": map, "filter": filter, "reduce": reduce,
             "inject_code": inject_code,
+            "pass": lambda *args: args,
         })
 
     def __missing__(self, key):

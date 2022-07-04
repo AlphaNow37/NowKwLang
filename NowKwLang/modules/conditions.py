@@ -37,8 +37,7 @@ class If:
         if func is None:
             raise TypeError("You need to do if(test){...}")
         else:
-            func.__create_scope__ = False
-            func.__traceback_show__ = False
+            func.__scope_factory__ = lambda scope: scope
             if self.test_passed:
                 __traceback_show__ = False
                 self.value = func()

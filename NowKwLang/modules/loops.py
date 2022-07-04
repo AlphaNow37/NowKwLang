@@ -19,7 +19,7 @@ class While:
             return While(self)
         else:
             __traceback_show__ = False
-            func.__create_scope__ = False
+            func.__scope_factory__ = lambda scope: scope
 
             if self.yielding:
                 return self._yields(func)
@@ -61,7 +61,7 @@ class For:
         if func is None:
             raise TypeError("You need to do for(<varname=None>, iterable){...}")
         else:
-            func.__create_scope__ = False
+            func.__scope_factory__ = lambda scope: scope
             __traceback_show__ = False
             if self.yielding:
                 return self._yields(func)

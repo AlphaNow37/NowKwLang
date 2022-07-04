@@ -1,6 +1,5 @@
 from functools import update_wrapper
 import linecache
-from textwrap import indent
 import operator
 
 from NowKwLang.parser.block import Block
@@ -100,8 +99,7 @@ def get_expr_value(expr: Expr, scope):
                     self.__name__ = "<function>"
                     self.__doc__ = ""
                     self.__module__ = obj.token.ctx.path
-                    self.__create_scope__ = True
-                    self.__traceback_show__ = True
+                    self.__scope_factory__ = Scope
 
                 def __call__(self, *fargs, **fkwargs):
                     __funcname__ = self.__name__
@@ -121,10 +119,7 @@ def get_expr_value(expr: Expr, scope):
                         for argname in keys:
                             if argname not in values:
                                 raise ValueError(f"Argument {argname} is missing")
-                    if self.__create_scope__:
-                        new_scope = Scope(scope)
-                    else:
-                        new_scope = scope
+                    new_scope = self.__scope_factory__(scope)
                     new_scope.update(values)
                     return run_block(body, new_scope)
 

@@ -6,6 +6,7 @@ from NowKwLang.modules.imports import pyimport, nklimport, importer
 from NowKwLang.modules.constants import *
 from NowKwLang.modules.conditions import If
 from NowKwLang.modules.utils import map, filter, reduce, inject_code
+from NowKwLang.modules.namespaces import namespace
 
 class Scope(dict):
     """
@@ -50,6 +51,7 @@ class _BuiltinScope(dict):
             "map": map, "filter": filter, "reduce": reduce,
             "inject_code": inject_code,
             "pass": lambda *args: args,
+            "namespace": namespace,
         })
 
     def __missing__(self, key):
@@ -65,9 +67,8 @@ class _GetLocals:
     def __init__(self, scope):
         self.scope = scope
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self):
         return self.scope
-
 
 if __name__ == '__main__':
     print(dict(builtin_scope))

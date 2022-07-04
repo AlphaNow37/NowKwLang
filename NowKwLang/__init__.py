@@ -9,7 +9,8 @@ from NowKwLang.context import Ctx
 from NowKwLang.interactive_console import ConsoleInteracter
 
 
-def run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path = None, debug=False, return_scope=False):
+def run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path = None,
+             debug=False, return_scope=False, module_pyname="__main__"):
     name = "<string>"
     if filename is not None:
         if source is not None:
@@ -26,7 +27,7 @@ def run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path =
     ctx = Ctx(name, source, debug=debug, is_real_file=filename is not None)
     tokens = lex(source, ctx)
     ast = parse(tokens, ctx)
-    result = run(ast, ctx, return_scope=return_scope)
+    result = run(ast, ctx, return_scope=return_scope, module_pyname=module_pyname)
     return result
 
 if __name__ == '__main__':

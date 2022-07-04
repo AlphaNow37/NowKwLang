@@ -1,12 +1,11 @@
 import sys
 import pathlib
-import importlib
 
 import NowKwLang
 
 
 def pyimport(module_name: str, asname=None):
-    module = importlib.import_module(module_name)
+    module = __import__(module_name)
     if asname is not None:
         module.__asname__ = asname
     return module
@@ -19,7 +18,6 @@ class Module:
         MODULE_CACHE.setdefault(filename, self)
         sys.modules[pyname] = self
         self.__dict__ = scope
-        self.__pyname__ = pyname
         self._filename = filename
 
     def __repr__(self):
@@ -58,7 +56,7 @@ def nklimport(module_name: str, asname=None):
         else:
             used_segs = segments
         name = ".".join(used_segs)
-        module_scope = NowKwLang.run_code(filename=file_path, return_scope=True)
+        module_scope = NowKwLang.run_code(filename=file_path, return_scope=True, module_pyname=name)
         mdl = Module(module_scope, file_path, name)
     obj = mdl
     for attr_seg in unused_segments:

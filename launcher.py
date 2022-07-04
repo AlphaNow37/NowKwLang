@@ -1,7 +1,7 @@
 import subprocess
 
 
-PATH = "examples/test.NkL"
+PATH = "examples/import_A.NkL"
 DEBUGGING = False
 
 subprocess.call(["python", "NowKwLang", PATH] + (["-d"] if DEBUGGING else []))

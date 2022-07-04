@@ -1,6 +1,5 @@
 ... = import("import_B.test", asname="hey")
 import("pkg.hey")
-import("basic")
 
 ... = func("test"){
     print("test A")

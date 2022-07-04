@@ -10,7 +10,7 @@ from NowKwLang.errors import show_line
 from NowKwLang.lexer import Token
 from NowKwLang.context import Ctx
 
-from NowKwLang.modules import Scope
+from NowKwLang.modules.scope import Scope
 
 _DEBUG = False
 
@@ -189,20 +189,20 @@ def walk(exc):
 
 SCOPE_CACHE = {}
 
-def run(ast: Block, ctx: Ctx, scope=None, return_scope=False):
+def run(ast: Block, ctx: Ctx, scope=None, return_scope=False, module_pyname="__main__"):
     if scope is not None:
         pass
     elif not ctx.is_real_file:
         scope = Scope()
-    elif ctx.path in SCOPE_CACHE:
-        return SCOPE_CACHE[ctx.path]
+    elif return_scope and (scope := SCOPE_CACHE.get(ctx.path)) is not None:
+        return scope
     else:
         scope = Scope()
         SCOPE_CACHE[ctx.path] = scope
 
     DEBUG = ctx.debug or _DEBUG
     scope["__file__"] = ctx.path
-    scope["__name__"] = ctx.file_name
+    scope["__name__"] = module_pyname
     try:
         result = run_block(ast, scope)
 
@@ -212,44 +212,40 @@ def run(ast: Block, ctx: Ctx, scope=None, return_scope=False):
         pad = " "*2
         funcname = "<module>"
         last_filename, last_lineno, n = None, None, 0
-        acc = 0
         for locals_, path, line_number, function_name, line in walk(tb):
             if not DEBUG and not locals_.get("__traceback_show__", True):
                 continue
-            if (path != __file__) or DEBUG:
-                message += f"{pad}File \"{path}\", line {line_number}, in {function_name}\n{pad*2}{line}"
-
-                if last_filename == path and last_lineno == line_number:
-                    n += 1
-                    if n > 5:
-                        n = 5
-                        acc += 1
-                    elif acc:
-                        message += f"{pad}[... {acc} more time\n]"
-                        acc = 0
-                last_lineno, last_filename = line_number, path
-
+            line_message = "???"
+            real_filename = real_line_number = None
+            if path != __file__ or DEBUG:
+                real_line_number = line_number
+                real_filename = path
+                line_message = f"{pad}File \"{path}\", line {line_number}, in {function_name}\n{pad * 2}{line}"
             if path == __file__:
                 token = locals_.get('token', None)
                 funcname = locals_.get('__funcname__', funcname)
                 if token:
                     if DEBUG:
-                        message += pad
-                    if "__funcname__" in locals_:
-                        funcname = locals_["__funcname__"]
-                    message += f"{pad}File \"{ctx.path}\", line {token.line}, column {token.column}, in {funcname}\n"
+                        line_message = line_message + pad
+                    else:
+                        line_message = ""
+                    line_message+=f"{pad}File \"{token.ctx.path}\", line {token.line}, column {token.column}, in {funcname}\n"
                     line_indicator = show_line(token, token.ctx)
-                    message += line_indicator + "\n"
-
-                    if last_filename == ctx.path and last_lineno == token.line:
-                        n += 1
-                        if n > 5:
-                            n = 5
-                            acc += 1
-                    elif acc:
-                        message += f"{pad}[... {acc} more time\n]"
-                        acc = 0
-                    last_lineno, last_filename = token.line, ctx.path
+                    line_message += line_indicator + "\n"
+                    real_line_number = token.line
+                    real_filename = token.ctx.path
+            if real_line_number is real_filename is None:
+                continue
+            if last_filename == real_filename and last_lineno == real_line_number:
+                n += 1
+            if n > 5 and last_filename != path and last_lineno != line_number:
+                message += f"{pad}[... {n-5} more time]\n"
+                n = 0
+            if n <= 5:
+                message += line_message
+            last_lineno, last_filename = real_line_number, real_filename
+        if n > 5:
+            message += f"{pad}[... {n-5} more time]\n"
 
         if e.__class__.__module__ == "builtins":
             message += f"{e.__class__.__name__}: {e}"

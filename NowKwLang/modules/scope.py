@@ -1,4 +1,4 @@
-from NowKwLang.modules.exceptions import raise_
+from NowKwLang.modules.exceptions import raise_, Try
 from NowKwLang.modules.errors import SyntaxError
 from NowKwLang.modules.funcs import func
 from NowKwLang.modules.loops import For, While
@@ -38,6 +38,7 @@ class _BuiltinScope(dict):
             "__builtins__": self,
             "SyntaxError": SyntaxError,
             "raise": raise_,
+            "try": Try, "Try": Try,
             "func": func,
             "for": For, "For": For,
             "while": While, "While": While,

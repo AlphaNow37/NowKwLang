@@ -72,7 +72,7 @@ def get_expr_value(expr: Expr, scope):
             return getattr(get_expr_value(obj, scope), attrname)
         case Call(obj, args, kwargs, is_subscript):
             exe_obj = get_expr_value(obj, scope)
-            method = exe_obj.__getitem__ if is_subscript else exe_obj.__call__
+            method = exe_obj.__getitem__ if is_subscript else exe_obj
             return method(
                 *(get_expr_value(arg, scope) for arg in args),
                 **{key.value: get_expr_value(value, scope) for (key, value) in kwargs}
@@ -128,7 +128,7 @@ def get_expr_value(expr: Expr, scope):
             obj_ = get_expr_value(obj, scope)
             method = getattr(obj_, "__inject_code__", None)
             if method is None:
-                return obj_.__call__(Function())
+                return obj_(Function())
             else:
                 return method(Function())
 

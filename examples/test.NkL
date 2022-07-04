@@ -1,4 +1,6 @@
-for([1, 2, 3]){
-    a = 5
-}
-print(a)
+print(try{
+    5
+}.except(){e>>>
+    print("except", type(e))
+}.run()
+)

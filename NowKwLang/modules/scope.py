@@ -2,7 +2,7 @@ from NowKwLang.modules.exceptions import raise_
 from NowKwLang.modules.errors import SyntaxError
 from NowKwLang.modules.funcs import func
 from NowKwLang.modules.loops import For, While
-from NowKwLang.modules.imports import Importer
+from NowKwLang.modules.imports import pyimport, nklimport, importer
 from NowKwLang.modules.constants import *
 from NowKwLang.modules.conditions import If
 from NowKwLang.modules.utils import map, filter, reduce, inject_code
@@ -41,7 +41,7 @@ class _BuiltinScope(dict):
             "func": func,
             "for": For, "For": For,
             "while": While, "While": While,
-            "import": Importer(),
+            "import": importer, "pyimport": pyimport, "nkl_import": nklimport,
             "...": empty_value,
             "empty_value": empty_value,
             "EmptyValue": EmptyValue,

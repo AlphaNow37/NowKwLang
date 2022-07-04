@@ -23,8 +23,8 @@ parser = argparse.ArgumentParser(description="NowKwLang")
 parser.add_argument("file", help="file to run", nargs="?")
 parser.add_argument("-d", "--debug", action="store_true", help="debug mode")
 
-def main(argv):
-    args = parser.parse_args(argv[1:])
+def main():
+    args = parser.parse_args()
 
     if args.file is None:
         NowKwLang.ConsoleInteracter.run(debug=args.debug)
@@ -40,9 +40,8 @@ def main(argv):
     if file_path.suffix != ".NkL":
         print(f"{file_path} is not a .NkL file")
         return 3
-    print("Running ...")
     NowKwLang.run_code(filename=file_path, debug=args.debug)
     return 0
 
 if __name__ == '__main__':
-    exit(main(sys.argv))
+    exit(main())

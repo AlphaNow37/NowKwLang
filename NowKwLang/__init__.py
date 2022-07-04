@@ -30,4 +30,4 @@ def run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path =
     return result
 
 if __name__ == '__main__':
-    ConsoleInteracter.run()
+    ConsoleInteracter.run(False)

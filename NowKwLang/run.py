@@ -243,7 +243,7 @@ def run(ast: Block, ctx: Ctx, scope=None, return_scope=False):
                     if "__funcname__" in locals_:
                         funcname = locals_["__funcname__"]
                     message += f"{pad}File \"{ctx.path}\", line {token.line}, column {token.column}, in {funcname}\n"
-                    line_indicator = show_line(token, ctx)
+                    line_indicator = show_line(token, token.ctx)
                     message += line_indicator + "\n"
 
                     if last_filename == ctx.path and last_lineno == token.line:

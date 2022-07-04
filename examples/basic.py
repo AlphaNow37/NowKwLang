@@ -1,3 +1,5 @@
-import NowKwLang
-
-NowKwLang.run_code(filename="code.NkL")
+print("basic.py ...")
+import import_B
+print(import_B)
+from pkg import hey
+print(hey)

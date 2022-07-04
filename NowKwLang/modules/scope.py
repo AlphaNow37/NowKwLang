@@ -8,6 +8,9 @@ from NowKwLang.modules.conditions import If
 from NowKwLang.modules.utils import map, filter, reduce, inject_code
 
 class Scope(dict):
+    """
+    A scope that contain the variables of the frame, with a superscope to fallback if a var is not found
+    """
     def __init__(self, superscope=None):
         if superscope is None:
             superscope = builtin_scope

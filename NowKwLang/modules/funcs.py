@@ -5,6 +5,12 @@ class _FuncMeta(type):
         return "func"
 
 class Func(metaclass=_FuncMeta):
+    """
+    return the function
+    func("name", "doc"){...}  -> create a function with name "name" and doc "doc"
+    func{...}                 -> create an anonymous function
+
+    """
     def __init__(self, name="", doc=""):
         self.name = name
         self.doc = doc

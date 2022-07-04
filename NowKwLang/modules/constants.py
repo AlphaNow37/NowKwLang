@@ -1,5 +1,8 @@
 
 class EmptyValue:
+    """
+    Ellipsis, but falsy
+    """
     def __new__(cls):
         return empty_value
 

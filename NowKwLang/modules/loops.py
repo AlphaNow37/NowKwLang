@@ -2,11 +2,14 @@ from NowKwLang.constants import MISSING
 
 
 class While:
+    """
+    A while loop
+    syntax:
+    while{condition}{...}    -> execute ... while condition, returning the list of the funcs results
+    """
     def __init__(self, test, *, yielding=False, do_cache=True):
         if not callable(test):
             raise TypeError("test must be callable")
-        if yielding and not do_cache:
-            raise ValueError("You can't yield without caching")
         self.test = test
         self.yielding = yielding
         self.do_cache = do_cache
@@ -36,13 +39,19 @@ class While:
 
 
 class For:
+    """
+    A for loop
+    syntax:
+    for("varname", iterable){...}    -> execute ... with varname equal to each value of iterable, returning the list of the funcs results
+    for(iterable){varname>>>...}     -> equivalent
+    for(..., do_cache=False){...}    -> don't cache func results, to optimise memory
+    set(for(..., yielding=True){...})-> create a generator, can be used to create custom collections for example
+    """
     def __init__(self, target_name: str, iterable=MISSING, *, yielding=False, do_cache=True):
         if iterable is MISSING:
             target_name, iterable = None, target_name
         if not (isinstance(target_name, str) or target_name is None):
             raise TypeError("target_name must be a string or None")
-        if yielding and not do_cache:
-            raise ValueError("You can't yield without caching")
         self.target_name = target_name
         self.iterable = iterable
         self.yielding = yielding

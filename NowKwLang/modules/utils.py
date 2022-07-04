@@ -6,6 +6,9 @@ _base_filter = filter
 
 
 class map:
+    """
+    map(iterable){value>>>...}{value>>>...} ... -> create an iterable that transform values
+    """
     def __init__(self, iterable, func=None):
         self.iterable = iterable
         self.func = func
@@ -33,6 +36,9 @@ class map:
             return map(self, func)
 
 class filter:
+    """
+    filter(iterable){value>>>...}{value>>>...} ... -> create an iterable that filter values
+    """
     def __init__(self, iterable, func=None):
         self.iterable = iterable
         self.func = func
@@ -57,6 +63,11 @@ class filter:
             return filter(self, func)
 
 class reduce:
+    """
+    reduce(iterable){value>>>...} -> recuce
+    recuce(func, iterable)        -> reduce
+    reduce(..., initial=...)      -> reduce
+    """
     def __new__(cls, func=None, iterable=MISSING, *,  initial=MISSING):
         if iterable is MISSING:
             if func is None:
@@ -84,8 +95,15 @@ class reduce:
 
 
 def inject_code(obj, func):
+    """
+    Inject code in an object. As obj{func_statements}.
+    Obj must have a __inject_code__ method or be callable
+    :param obj: the object
+    :param func: the function
+    :return: the result of the method
+    """
     method = getattr(obj, "__inject_code__", None)
     if method is None:
-        return obj.__call__(func)
+        return obj(func)
     else:
         return method(func)

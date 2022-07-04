@@ -10,14 +10,15 @@ from NowKwLang.modules.scope import Scope
 
 class ConsoleInteracter:
     @classmethod
-    def run(cls):
-        return cls()
+    def run(cls, debug):
+        return cls(debug)
 
-    def __init__(self):
+    def __init__(self, debug):
         self.juste_asked_input = False
         self.chars = deque()
-        self.ctx = Ctx("<console>", "", debug=False, is_real_file=False)
+        self.ctx = Ctx("<console>", "", debug=debug, is_real_file=False)
         del self.ctx.lines[:]
+        print(f"Entering NkL interactive console... {debug=}")
         tokens = iter(lex(self, self.ctx))
         scope = Scope()
         while True:

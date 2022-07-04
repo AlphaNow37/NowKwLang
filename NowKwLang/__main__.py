@@ -1,10 +1,20 @@
+"""
+__main__ manage the command-line interface.
+usages:
+python NowKwLang -h/--help           -> help interface
+python NowKwLang -d/--debug <file>   -> run file in debug mode
+python NowKwLang <file>              -> run file
+python NowKwLang -d/--debug          -> run interactive console in debug mode
+python NowKwLang                     -> run interactive console
+"""
 import argparse
 import pathlib
 import sys
 
-if __file__.removesuffix('\\__main__.py') in sys.path:
-    sys.path.remove(__file__.removesuffix('\\__main__.py'))
-    sys.path.append(__file__.removesuffix('\\NowKwLang\\__main__.py'))
+actual_file = pathlib.Path(__file__).resolve()
+if str(actual_file.parent) in sys.path:
+    sys.path.remove(str(actual_file.parent))
+    sys.path.append(str(actual_file.parent.parent))
 
 import NowKwLang
 
@@ -17,7 +27,7 @@ def main(argv):
     args = parser.parse_args(argv[1:])
 
     if args.file is None:
-        NowKwLang.ConsoleInteracter.run()
+        NowKwLang.ConsoleInteracter.run(debug=args.debug)
         return 0
 
     file_path = pathlib.Path(args.file)

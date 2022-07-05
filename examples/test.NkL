@@ -1,6 +1,1 @@
-namespace("hey", a="b"){
-    if(upper() == "HEY"){
-        print("yes", a)
-    }
-}
-print(a)
+print(locals())

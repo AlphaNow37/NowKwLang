@@ -56,7 +56,7 @@ def nklimport(module_name: str, asname=None):
         else:
             used_segs = segments
         name = ".".join(used_segs)
-        module_scope = NowKwLang.run_code(filename=file_path, return_scope=True, module_pyname=name)
+        module_scope = NowKwLang._run_code(filename=file_path, return_scope=True, module_pyname=name)
         mdl = Module(module_scope, file_path, name)
     obj = mdl
     for attr_seg in unused_segments:

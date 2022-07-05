@@ -10,6 +10,7 @@ python NowKwLang                     -> run interactive console
 import argparse
 import pathlib
 import sys
+import os
 
 actual_file = pathlib.Path(__file__).resolve()
 if str(actual_file.parent) in sys.path:
@@ -17,7 +18,6 @@ if str(actual_file.parent) in sys.path:
     sys.path.append(str(actual_file.parent.parent))
 
 import NowKwLang
-
 
 parser = argparse.ArgumentParser(description="NowKwLang")
 parser.add_argument("file", help="file to run", nargs="?")
@@ -40,7 +40,9 @@ def main():
     if file_path.suffix != ".NkL":
         print(f"{file_path} is not a .NkL file")
         return 3
-    NowKwLang.run_code(filename=file_path, debug=args.debug)
+    os.chdir(file_path.parent)
+    file_path = file_path.parts[-1]
+    NowKwLang.NkL_run(filename=file_path, debug=args.debug)
     return 0
 
 if __name__ == '__main__':

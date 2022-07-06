@@ -6,7 +6,7 @@ from NowKwLang.context import Ctx
 from NowKwLang.lexer import lex, NewLine
 from NowKwLang.parser import parse
 from NowKwLang.run import run
-from NowKwLang.modules.scope import Scope
+from NowKwLang.NkL_std_libs.scope import Scope
 
 class ConsoleInteracter:
     @classmethod

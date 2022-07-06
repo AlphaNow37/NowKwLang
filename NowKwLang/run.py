@@ -10,7 +10,7 @@ from NowKwLang.errors import show_line
 from NowKwLang.lexer import Token
 from NowKwLang.context import Ctx
 
-from NowKwLang.modules.scope import Scope
+from NowKwLang.NkL_std_libs.scope import Scope
 
 _DEBUG = False
 

@@ -1,12 +1,12 @@
-from NowKwLang.modules.exceptions import raise_, Try
-from NowKwLang.modules.errors import SyntaxError
-from NowKwLang.modules.funcs import func
-from NowKwLang.modules.loops import For, While
-from NowKwLang.modules.imports import pyimport, nklimport, importer
-from NowKwLang.modules.constants import *
-from NowKwLang.modules.conditions import If
-from NowKwLang.modules.utils import map, filter, reduce, inject_code
-from NowKwLang.modules.namespaces_withs import namespace, With
+from NowKwLang.NkL_std_libs.exceptions import raise_, Try
+from NowKwLang.NkL_std_libs.errors import SyntaxError
+from NowKwLang.NkL_std_libs.funcs import func
+from NowKwLang.NkL_std_libs.loops import For, While
+from NowKwLang.NkL_std_libs.imports import pyimport, nklimport, importer
+from NowKwLang.NkL_std_libs.constants import *
+from NowKwLang.NkL_std_libs.conditions import If
+from NowKwLang.NkL_std_libs.utils import map, filter, reduce, inject_code
+from NowKwLang.NkL_std_libs.namespaces_withs import Namespace, With
 
 class Scope(dict):
     """
@@ -16,10 +16,16 @@ class Scope(dict):
         if superscope is None:
             superscope = builtin_scope
         self.superscope = superscope
-        super().__init__(locals=self.locals)
+        super().__init__(locals=self.locals, vars=self.vars)
 
     def locals(self):
         return self
+
+    def vars(self, obj=None):
+        if obj is None:
+            return self.locals()
+        else:
+            return vars(obj)
 
     def __missing__(self, key):
         return self.superscope[key]
@@ -51,7 +57,7 @@ class _BuiltinScope(dict):
             "map": map, "filter": filter, "reduce": reduce,
             "inject_code": inject_code,
             "pass": lambda *args: args,
-            "namespace": namespace, "with": With,
+            "namespace": Namespace, "with": With,
         })
 
     def __missing__(self, key):

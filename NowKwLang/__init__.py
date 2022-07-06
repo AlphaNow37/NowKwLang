@@ -1,7 +1,7 @@
 import pathlib
 import sys
 
-from NowKwLang import modules, run
+from NowKwLang import NkL_std_libs, run
 from NowKwLang.parser import parse
 from NowKwLang.lexer import lex
 from NowKwLang.run import run

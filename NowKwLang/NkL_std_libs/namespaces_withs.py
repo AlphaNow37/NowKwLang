@@ -1,8 +1,8 @@
-from NowKwLang.modules import scope
+from NowKwLang.NkL_std_libs import scope
 
 _DEFAULT = object()
 
-def namespace(*args, **kwargs):
+def Namespace(*args, **kwargs):
     args = list(reversed(args))
 
     class NameSpacedScope(scope.Scope):
@@ -26,6 +26,7 @@ def namespace(*args, **kwargs):
 
     return wrapper
 
+Namespace.__name__ = Namespace.__qualname__ = "namespace"
 
 def With(*args, **kwargs):
     def wrapper(func):
@@ -62,3 +63,5 @@ def With(*args, **kwargs):
                 obj.__exit__(None, None, None)
             return result
     return wrapper
+
+With.__name__ = With.__qualname__ = "with"

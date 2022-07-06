@@ -160,11 +160,9 @@ def run_stmt(ast, scope):
                 if varname is None:
                     varname = getattr(value, "__name__", None)
                 if varname is None:
-                    raise ValueError("Assigning to '...' requires a nameable object, "
-                                     "with a __asname__ or __name__ attribute")
+                    raise ValueError("Assigning to '...' requires a __asname__ or __name__ attribute")
                 elif not varname.isidentifier():
-                    raise ValueError("Assigning to '...' requires a nameable object, "
-                                     "with __asname__ or __name__  attribute that is a valid identifier")
+                    raise ValueError("__asname__ or __name__ attribute aren't valid identifier for assign to '...'")
             scope[varname] = value
         case Expr():
             return get_expr_value(ast, scope)

@@ -1,12 +1,13 @@
 from NowKwLang.NkL_std_libs.exceptions import raise_, Try
 from NowKwLang.NkL_std_libs.errors import SyntaxError
-from NowKwLang.NkL_std_libs.funcs import func
+from NowKwLang.NkL_std_libs.funcs import Func, Method
 from NowKwLang.NkL_std_libs.loops import For, While
 from NowKwLang.NkL_std_libs.imports import pyimport, nklimport, importer
 from NowKwLang.NkL_std_libs.constants import *
 from NowKwLang.NkL_std_libs.conditions import If
 from NowKwLang.NkL_std_libs.utils import map, filter, reduce, inject_code
 from NowKwLang.NkL_std_libs.namespaces_withs import Namespace, With
+from NowKwLang.NkL_std_libs.classes import Type, Class
 
 class Scope(dict):
     """
@@ -46,7 +47,7 @@ class _BuiltinScope(dict):
             "SyntaxError": SyntaxError,
             "raise": raise_,
             "try": Try, "Try": Try,
-            "func": func,
+            "func": Func, "method": Method,
             "for": For, "For": For,
             "while": While, "While": While,
             "import": importer, "pyimport": pyimport, "nkl_import": nklimport,
@@ -58,6 +59,7 @@ class _BuiltinScope(dict):
             "inject_code": inject_code,
             "pass": lambda *args: args,
             "namespace": Namespace, "with": With,
+            "type": Type, "class": Class,
         })
 
     def __missing__(self, key):

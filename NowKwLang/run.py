@@ -203,6 +203,10 @@ def run(ast: Block, ctx: Ctx, scope=None, return_scope=False, module_pyname="__m
     DEBUG = ctx.debug or _DEBUG
     scope["__file__"] = ctx.path
     scope["__name__"] = module_pyname
+    for name in ("class", "type"):
+        copy = scope[name].__copy__()
+        scope[name] = copy
+        copy.__module__ = module_pyname
     try:
         result = run_block(ast, scope)
 

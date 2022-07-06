@@ -1,1 +1,13 @@
-print(vars())
+print(type)
+
+... = class("hey"){
+    ... = method("hey"){self>>>
+        print("hey !", self)
+    }
+    ... = method("__repr__"){self>>>
+        "hey"
+    }
+}
+
+print(hey, dir(hey))
+hey().hey()

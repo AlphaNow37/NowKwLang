@@ -1,13 +1,6 @@
-print(type)
-
-... = class("hey"){
-    ... = method("hey"){self>>>
-        print("hey !", self)
+... = import("inspect")
+print(inspect.signature(
+    func(){x, y, z=12>>>
+        ...
     }
-    ... = method("__repr__"){self>>>
-        "hey"
-    }
-}
-
-print(hey, dir(hey))
-hey().hey()
+))

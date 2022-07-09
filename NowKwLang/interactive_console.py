@@ -16,7 +16,7 @@ class ConsoleInteracter:
     def __init__(self, debug):
         self.juste_asked_input = False
         self.chars = deque()
-        self.ctx = Ctx("<console>", "", debug=debug, is_real_file=False)
+        self.ctx = Ctx("<console>", "", "__main__", debug=debug, is_real_file=False)
         del self.ctx.lines[:]
         print(f"Entering NkL interactive console... {debug=}")
         tokens = iter(lex(self, self.ctx))

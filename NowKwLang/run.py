@@ -1,6 +1,7 @@
 from functools import update_wrapper
 import linecache
 import operator
+from inspect import Signature, Parameter
 
 from NowKwLang.parser.block import Block
 from NowKwLang.parser.expr import Expr, Variable, Const, Attribute, Call, Collection, Dict, CodeInject, Operator
@@ -14,19 +15,34 @@ from NowKwLang.NkL_std_libs.scope import Scope
 
 _DEBUG = False
 
+
+empty_sig = Signature([Parameter("__locals__", Parameter.VAR_KEYWORD)])
 class Function:
-    def __init__(self, oncall, module):
-        self.__oncall = oncall
-        self.__call__ = oncall
-        self.__name__ = "<function>"
+    def __init__(self, module, superscope, stmts, sig):
+        self.__name__ = self.__qualname__ = "<function>"
         self.__doc__ = ""
         self.__module__ = module
+        self.__scope_factory__ = Scope
+        self.__closure__ = superscope
+        self.__code__ = stmts
+        self.__signature__ = sig
 
     def __call__(self, *args, **kwargs):
-        return self.__oncall(*args, **kwargs)
+        __funcname__ = self.__qualname__
+        if self.__signature__ is empty_sig:
+            if args:
+                raise TypeError(f"{__funcname__}() takes no arguments ({len(args)} given)")
+            values = kwargs
+        else:
+            values = self.__signature__.bind(*args, **kwargs)
+            values.apply_defaults()
+            values = values.arguments
+        new_scope = self.__scope_factory__(self.__closure__)
+        new_scope.update(values)
+        return run_block(self.__code__, new_scope)
 
     def __repr__(self):
-        return f"<{self.__class__.__name__} {self.__module__} {self.__name__} at {hex(id(self))}>"
+        return f"<{self.__class__.__name__} {self.__module__}.{self.__qualname__} at {hex(id(self))}>"
 
 
 OPERATORS = {
@@ -91,46 +107,53 @@ def get_expr_value(expr: Expr, scope):
                     for (argname, value) in args
                     if value is not MISSING
                 }
+                sig = Signature(
+                    [Parameter(argname, Parameter.POSITIONAL_OR_KEYWORD,
+                               default=evaluated_defaults.get(argname, Parameter.empty))
+                     for argname in keys]
+                )
             else:
                 evaluated_defaults = None
-
-            class Function:
-                def __init__(self):
-                    self.__name__ = "<function>"
-                    self.__doc__ = ""
-                    self.__module__ = obj.token.ctx.path
-                    self.__scope_factory__ = Scope
-
-                def __call__(self, *fargs, **fkwargs):
-                    __funcname__ = self.__name__
-                    if args is None:
-                        if fargs:
-                            raise ValueError("Function takes no arguments but got %d" % len(fargs))
-                        values = fkwargs
-                    else:
-                        values = evaluated_defaults | dict(zip(keys, fargs))
-                        for key in fkwargs:
-                            if key in values:
-                                raise ValueError(f"Argument {key} is already defined")
-                            elif key not in keys:
-                                raise ValueError(f"Argument {key} is not defined")
-                            else:
-                                values[key] = fkwargs[key]
-                        for argname in keys:
-                            if argname not in values:
-                                raise ValueError(f"Argument {argname} is missing")
-                    new_scope = self.__scope_factory__(scope)
-                    new_scope.update(values)
-                    return run_block(body, new_scope)
-
-                def __repr__(self):
-                    return f"<{self.__class__.__name__} {self.__module__} {self.__name__} at {hex(id(self))}>"
+                sig = empty_sig
+            #
+            # class Function:
+            #     def __init__(self):
+            #         self.__name__ = self.__qualname__ = "<function>"
+            #         self.__doc__ = ""
+            #         self.__module__ = obj.token.ctx.pyname
+            #         self.__scope_factory__ = Scope
+            #
+            #     def __call__(self, *fargs, **fkwargs):
+            #         __funcname__ = self.__qualname__
+            #         if args is None:
+            #             if fargs:
+            #                 raise ValueError("Function takes no arguments but got %d" % len(fargs))
+            #             values = fkwargs
+            #         else:
+            #             values = evaluated_defaults | dict(zip(keys, fargs))
+            #             for key in fkwargs:
+            #                 if key in values:
+            #                     raise ValueError(f"Argument {key} is already defined")
+            #                 elif key not in keys:
+            #                     raise ValueError(f"Argument {key} is not defined")
+            #                 else:
+            #                     values[key] = fkwargs[key]
+            #             for argname in keys:
+            #                 if argname not in values:
+            #                     raise ValueError(f"Argument {argname} is missing")
+            #         new_scope = self.__scope_factory__(scope)
+            #         new_scope.update(values)
+            #         return run_block(body, new_scope)
+            #
+            #     def __repr__(self):
+            #         return f"<{self.__class__.__name__} {self.__module__}.{self.__qualname__} at {hex(id(self))}>"
             obj_ = get_expr_value(obj, scope)
             method = getattr(obj_, "__inject_code__", None)
+            func = Function(obj.token.ctx.pyname, scope, body, sig)
             if method is None:
-                return obj_(Function())
+                return obj_(func)
             else:
-                return method(Function())
+                return method(func)
 
         case Operator(left, op, right):
             left = get_expr_value(left, scope)
@@ -201,7 +224,7 @@ def run(ast: Block, ctx: Ctx, scope=None, return_scope=False, module_pyname="__m
     DEBUG = ctx.debug or _DEBUG
     scope["__file__"] = ctx.path
     scope["__name__"] = module_pyname
-    for name in ("class", "type"):
+    for name in ("type", ):  # Type don't have access to __name__
         copy = scope[name].__copy__()
         scope[name] = copy
         copy.__module__ = module_pyname

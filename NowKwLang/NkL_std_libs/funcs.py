@@ -1,4 +1,5 @@
 from typing import Callable
+from types import MethodType
 
 class _ReprMeta(type):
     _name = "unknown"
@@ -38,27 +39,13 @@ class Func(metaclass=_ReprMeta):
 Func.__name__ = Func.__qualname__ = "func"
 
 
-class MethodProxy(object):
-    def __init__(self, instance, method):
-        self.__instance = instance
-        self.__method = method
-
-    def __getattr__(self, item):
-        return getattr(self.__method, item)
-
-    def __call__(self, *args, **kwargs):
-        return self.__method(self.__instance, *args, **kwargs)
-
-    def __repr__(self):
-        return f"<MethodProxy of {self.__instance!r}>"
-
-
 class Method(Func):
     _name = "method"
     func = None
 
     def __inject_code__(self, func: Callable = None):
-        self.func = super().__inject_code__(func)
+        print(func, "//")
+        self.func = Func.__inject_code__(self, func)
         self.__name__ = self.func.__name__
         self.__doc__ = self.func.__doc__
         return self
@@ -66,10 +53,18 @@ class Method(Func):
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return MethodProxy(instance, self.func)
+        return MethodType(self.func, instance)
 
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
+
+    def __repr__(self):
+        text = "method"
+        if not (self.name is self.doc is None):
+            text += f"({self.name!r}, {self.doc!r})"
+        if self.func is not None:
+            text += "{...}"
+        return text
 
 
 Method.__name__ = Method.__qualname__ = "method"

@@ -12,7 +12,7 @@ if __name__ == '__main__':
     code = '''
     print(1 + 2)
     '''
-    ctx = Ctx("<string>", code)
+    ctx = Ctx("<string>", code, "__main__")
     tokens = lex(code, ctx)
     stream = TokenStream(tokens, ctx)
     print(stream[:5])

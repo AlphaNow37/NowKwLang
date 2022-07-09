@@ -47,11 +47,7 @@ class Class:
             func.__scope_factory__ = scope_factory
             func()
             cls = type(self.name, self.bases, self.attrs | scope)
-            cls.__module__ = self.__module__
+            cls.__module__ = func.__module__
             return cls
-
-    @classmethod
-    def __copy__(cls):
-        return type(cls.__name__, cls.__bases__, vars(cls).copy())
 
 Class.__name__ = Class.__qualname__ = "class"

@@ -31,7 +31,7 @@ def get_element(stream: TokenStream, dict_or_set, is_argdef, last_type) -> tuple
             second_expr = parse_expr(stream)
             value = KW, expr.token, second_expr
         elif last_type == KW:
-            raise ParsingError(after, "Positionnal arg follow keyworld arg", stream.ctx)
+            raise ParsingError(expr.token, "Positionnal arg follow keyworld arg", stream.ctx)
         else:
             if is_argdef:
                 if isinstance(expr, Variable):

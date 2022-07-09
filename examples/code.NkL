@@ -27,3 +27,7 @@ print(list(
 ))
 ... = import("code2", asname="a_nkl_lib")  /// content: ... = func("function"){world>>>world*2}
 print(a_nkl_lib.function("hey")) /// heyhey
+
+namespace("hey", b="hoy"){
+    print(upper() + b) // "HEYhoy"
+}

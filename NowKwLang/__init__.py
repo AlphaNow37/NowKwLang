@@ -28,7 +28,7 @@ def _run_code(source: "str | hasattr read" = None, filename: str | pathlib.Path 
         name = "<file>"
     if not isinstance(source, str):
         raise TypeError("Source must be a string")
-    ctx = Ctx(name, source, debug=debug, is_real_file=filename is not None)
+    ctx = Ctx(name, source, module_pyname, debug=debug, is_real_file=filename is not None)
     tokens = lex(source, ctx)
     ast = parse(tokens, ctx)
     result = run(ast, ctx, return_scope=return_scope, module_pyname=module_pyname)
